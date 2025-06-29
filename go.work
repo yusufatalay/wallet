@@ -1,0 +1,10 @@
+go 1.24.0
+
+use (
+	./api-gateway
+	./assets
+	./pkg
+	./proto
+	./users
+	./wallets
+)

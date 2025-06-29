@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "github.com/yusufatalay/wallet/proto";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger)={
+  info: {
+    title: "Wallet Service API";
+    version: "1.0";
+  };
+  schemes: [HTTP, HTTPS];
+  consumes: ["application/json"];
+  produces: ["application/json"];
+  security_definitions:{
+    security: {
+      key: "BearerAuth";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "Authorization";
+        description: "Authorization token, prefixed by 'Bearer '."
+      }
+    }
+  }
+};
+
+
+
+service WalletService{
+  rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse){
+    option (google.api.http) = {post : "/v1/wallets", body:"*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+  rpc GetWallets(GetWalletsRequest) returns (GetWalletsResponse){
+    option(google.api.http) = {get: "/v1/wallets"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  // for internal grpc calls only, no http mapping
+  rpc ValidateWalletOwner(ValidateWalletOwnerRequest) returns(ValidateWalletOwnerResponse);
+  rpc FindWalletByAddress(FindWalletByAddressRequest) returns (Wallet);
+}
+
+message Wallet{
+  string wallet_id = 1;
+  string user_id = 2;
+  string address = 3;
+  string network = 4;
+}
+
+message FindWalletByAddressRequest{
+  string address = 1;
+  string network = 2;
+}
+
+message CreateWalletRequest{
+  string address = 1;
+  string network = 2;
+}
+
+message CreateWalletResponse{
+  Wallet wallet = 1;
+}
+
+message GetWalletsRequest {}
+message GetWalletsResponse {
+ repeated Wallet wallets = 1; 
+}
+
+message ValidateWalletOwnerRequest{
+  string wallet_id = 1;
+}
+
+message ValidateWalletOwnerResponse{
+  bool is_owner = 1;
+}
+

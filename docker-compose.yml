@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      users-service:
+        condition: service_started
+      wallets-service:
+        condition: service_started
+      assets-service:
+        condition: service_started
+    environment:
+      USERS_SERVICE_ADDR: "users-service:50051"
+      WALLETS_SERVICE_ADDR: "wallets-service:50052"
+      ASSETS_SERVICE_ADDR: "assets-service:50053"
+
+  users-service:
+    build:
+      context: .
+      dockerfile: ./users/Dockerfile
+    container_name: users-service
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: "mongodb://mongo:27017/?replicaSet=rs0"
+      JWT_SECRET: "my-super-secret-key"
+
+  wallets-service:
+    build:
+      context: .
+      dockerfile: ./wallets/Dockerfile
+    container_name: wallets-service
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      MONGO_URI: "mongodb://mongo:27017/?replicaSet=rs0"
+      REDIS_ADDR: "redis:6379"
+      JWT_SECRET: "my-super-secret-key"
+
+  assets-service:
+    build:
+      context: .
+      dockerfile: ./assets/Dockerfile
+    container_name: assets-service
+    depends_on:
+      wallets-service:
+        condition: service_started
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_URI: "mongodb://mongo:27017/?replicaSet=rs0"
+      WALLETS_SERVICE_ADDR: "wallets-service:50052"
+      JWT_SECRET: "my-super-secret-key"
+
+  mongo:
+    image: mongo:5.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-data:

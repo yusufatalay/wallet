@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+package proto;
+option go_package = "github.com/yusufatalay/wallet/proto";
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger)={
+  info: {
+    title: "Asset Service API";
+    version: "1.0";
+  };
+  schemes: [HTTP, HTTPS];
+  consumes: ["application/json"];
+  produces: ["application/json"];
+  security_definitions:{
+    security: {
+      key: "BearerAuth";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "Authorization";
+        description: "Authorization token, prefixed by 'Bearer '."
+      }
+    }
+  }
+};
+
+message Asset {
+  string name = 1;
+  double amount = 2;
+}
+
+// reqs/resps
+message DepositRequest{
+  string wallet_id = 1;
+  string asset_name = 2; // Btc , eth 
+  double amount =3;
+}
+
+message WithdrawRequest{
+  string wallet_id = 1;
+  string asset_name = 2;
+  double amount =3;
+}
+
+message TransferRequest{
+  string from_wallet_id= 1;
+  string to_wallet_address = 2;
+  string to_wallet_network = 3;
+  string asset_name = 4;
+  double amount = 5;
+}
+
+message ScheduleDepositRequest{
+  string wallet_id = 1;
+  string asset_name = 2;
+  double amount = 3;
+  google.protobuf.Timestamp scheduled_for = 4;
+}
+
+message ScheduleWithdrawRequest{
+  string wallet_id = 1;
+  string asset_name = 2;
+  double amount = 3;
+  google.protobuf.Timestamp scheduled_for = 4;
+}
+
+message ScheduleTransferRequest{
+  string from_wallet_id= 1;
+  string to_wallet_address = 2;
+  string to_wallet_network = 3;
+  string asset_name = 4;
+  double amount = 5;
+  google.protobuf.Timestamp scheduled_for = 6;
+}
+
+message ListTransactionsRequest{
+  string wallet_id = 1;
+  string status = 2;
+}
+
+message TransactionResponse{
+  string transaction_id = 1;
+  string status =2;
+  string message = 3;
+}
+
+message GetWalletAssetsRequest{
+  string wallet_id = 1;
+}
+
+message GetWalletAssetsResponse{
+  repeated Asset assets = 1;
+}
+
+message Transaction {
+  string id = 1;
+  string type = 2;
+  string status = 3;
+  string asset_name = 4;
+  double amount = 5;
+  string from_wallet_id = 6;
+  string to_wallet_address = 7;
+  string to_wallet_network = 8;
+  string wallet_id = 9; 
+  google.protobuf.Timestamp scheduled_for = 10;
+  google.protobuf.Timestamp timestamp = 11;
+  string process_notes = 12;
+}
+
+message ListTransactionsResponse{
+  repeated Transaction transactions = 1;
+}
+
+service AssetService{
+  rpc Deposit(DepositRequest) returns (TransactionResponse){
+    option (google.api.http) = {post: "/v1/assets/deposit", body: "*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  rpc Withdraw(WithdrawRequest) returns (TransactionResponse){
+    option (google.api.http) = {post: "/v1/assets/withdraw", body: "*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  rpc Transfer(TransferRequest) returns (TransactionResponse){
+    option (google.api.http) = {post: "/v1/assets/transfer", body: "*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  rpc ScheduleDeposit(ScheduleDepositRequest) returns (TransactionResponse){
+    option (google.api.http) = {post: "/v1/assets/deposit/schedule", body: "*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  rpc ScheduleWithdraw(ScheduleWithdrawRequest) returns (TransactionResponse){
+    option (google.api.http) = {post: "/v1/assets/withdraw/schedule", body: "*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  rpc ScheduleTransfer(ScheduleTransferRequest) returns (TransactionResponse){
+    option (google.api.http) = {post: "/v1/assets/transfer/schedule", body: "*"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  rpc GetWalletAssets(GetWalletAssetsRequest) returns (GetWalletAssetsResponse){
+    option (google.api.http) = {get: "/v1/assets/by-wallet/{wallet_id}"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+
+  rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse){
+    option (google.api.http) = {get: "/v1/transactions"};
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: [{ security_requirement: { key: "BearerAuth"; value: {} } }]
+    };
+  }
+}
+
