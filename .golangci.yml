@@ -1,0 +1,34 @@
+# .golangci.yml
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - copyloopvar
+    - gofmt
+    - govet
+    - errcheck
+    - staticcheck
+    - unused
+    - ineffassign
+    - typecheck
+    - bodyclose
+    - goconst
+    - gocyclo
+    - goimports
+    - goprintffuncname
+    - gosimple
+    - misspell
+    - nakedret
+    - godox
+    - godot
+    - revive
+    - nlreturn
+    - whitespace
+    - lll
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - govet
