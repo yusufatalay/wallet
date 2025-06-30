@@ -25,5 +25,5 @@ lint:
 
 test:
 	@echo "Running tests..."
-	@go test -v ./...
+	@go test -v ./api-gateway/... ./assets/... ./pkg/... ./proto/... ./users/... ./wallets/...
 	@echo "Tests finished"
